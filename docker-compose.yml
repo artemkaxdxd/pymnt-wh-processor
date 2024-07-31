@@ -1,0 +1,38 @@
+services:
+
+  db:
+    image: mysql:9.0.1
+    container_name: mysql
+    environment:
+      MYSQL_DATABASE: just_pay
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    container_name: order_svc
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_USER: root
+      MYSQL_PASSWORD: root
+      MYSQL_NAME: just_pay
+      SERVER_PORT: 8080
+    links:
+      - "db:database"
+    ports:
+      - "8080:8080"
+
+volumes:
+  mysql_data:
